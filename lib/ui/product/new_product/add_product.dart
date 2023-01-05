@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:qr_code_app/model/product_model.dart';
-import 'package:qr_code_app/ui/product/widgets/qr_reader.dart';
 
 class AddProduct extends StatefulWidget {
   const AddProduct({Key? key}) : super(key: key);
@@ -22,6 +21,7 @@ class _AddProductState extends State<AddProduct> {
     barcodeScanResult=
         await FlutterBarcodeScanner.scanBarcode(
             "", "done", false, ScanMode.DEFAULT);
+    setState((){});
   }
   @override
   Widget build(BuildContext context) {
@@ -42,6 +42,7 @@ class _AddProductState extends State<AddProduct> {
                 Expanded(child: IconButton(onPressed: ()async{
                   await _barcode();
                   idController.text=barcodeScanResult;
+                  product=null;
                   setState((){});
                 }, icon: const Icon(Icons.qr_code)))
               ],
@@ -58,19 +59,59 @@ class _AddProductState extends State<AddProduct> {
             ElevatedButton(onPressed: (){
               setState(() {
                 products.add(ProductModel(idController.text, nameController.text,double.parse(priceController.text)));
+                product =null;
+                idController.text='';
+                nameController.text='';
+                priceController.text='';
               });
             }, child: const Text('save')),
             Expanded(child: Text('${products.length}')),
             const SizedBox(height: 5,),
             ElevatedButton(onPressed: ()async{
+              barcodeScanResult="0";
+              product =null;
               await _barcode();
-              product = products.firstWhere((element) => element.qrCode== barcodeScanResult);
+              if(barcodeScanResult!="0")
+                {
+                  product = products.firstWhere((element) => element.qrCode== barcodeScanResult);
+                }
+              else
+                {
+                  product = ProductModel('000', 'لا توجد نتائج', 00);
+                }
+              idController.text='';
+              nameController.text='';
+              priceController.text='';
               setState((){});
             },
                 child: const Text('find product'),
             ),
             product!=null
-            ?Text('name ${product!.name} price ${product!.price}',style: const TextStyle(color: Colors.green),)
+            ?Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    const Text('نتيجة البحث',style: TextStyle(color: Colors.green),),
+                    const SizedBox(height: 5,),
+                    Row(
+                      children: [
+                        const Text('اسم الصنف :',style: TextStyle(color: Colors.grey)),
+                        const SizedBox(width: 5,),
+                        Text(product!.name,style: const TextStyle(color: Colors.green)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        const Text('سعر الصنف :',style: TextStyle(color: Colors.grey)),
+                        const SizedBox(width: 5,),
+                        Text(product!.price.toString(),style: const TextStyle(color: Colors.green)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            )
                 :const SizedBox()
           ],
         ),
